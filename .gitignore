@@ -1,0 +1,20 @@
+# General
+.bundle
+.rvmrc
+.powenv
+
+# Local config files
+Gemfile.lock
+.rvmrc
+
+# Build files
+distro/build
+pkg/
+
+# Tempfiles
+tmp/
+coverage
+capybara*
+
+# Dummy app
+spec/dummy/log
