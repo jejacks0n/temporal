@@ -1,6 +1,6 @@
 # Temporal
 
-Temporal is a small (~5.5k) Javascript library that uses a collection of techniques to determine a clients time zone.
+Temporal is a small (~7.5k) Javascript library that uses a collection of techniques to determine a clients time zone.
 Once a time zone has been determined, a cookie is set which can be used on the server.  Now you can display local times
 throughout the rest of the response cycle.
 
