@@ -1,13 +1,25 @@
 (function() {
-  var AMBIGIOUS_ZONES, DST_START_DATES, HEMISPHERE_NORTH, HEMISPHERE_SOUTH, HEMISPHERE_UNKNOWN, JSONP_CALLBACK, TIMEZONES, Temporal, TimeZone;
+  var AMBIGIOUS_ZONES, DST_START_DATES, HEMISPHERE_NORTH, HEMISPHERE_SOUTH, HEMISPHERE_UNKNOWN, JSONP_CALLBACK, TIMEZONES, Temporal, TimeZone,
+    __hasProp = {}.hasOwnProperty;
 
   TimeZone = (function() {
 
-    function TimeZone(key, name) {
-      this.name = name != null ? name : '';
-      if (key) {
-        this.name = TIMEZONES[key];
+    function TimeZone(keyOrProperties) {
+      var property, value, zone;
+      if (typeof keyOrProperties === 'string') {
+        zone = TIMEZONES[keyOrProperties];
+        for (property in zone) {
+          if (!__hasProp.call(zone, property)) continue;
+          value = zone[property];
+          this[property] = value;
+        }
         this.resolveAmbiguity();
+      } else {
+        for (property in keyOrProperties) {
+          if (!__hasProp.call(keyOrProperties, property)) continue;
+          value = keyOrProperties[property];
+          this[property] = value;
+        }
       }
     }
 
@@ -35,12 +47,16 @@
     function Temporal() {}
 
     Temporal.detect = function(username, callback) {
+      var timezone;
       Temporal.username = username != null ? username : null;
       Temporal.callback = callback != null ? callback : null;
-      if (Temporal.username && navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(Temporal.geoSuccess, function() {});
+      timezone = Temporal.quick();
+      if (timezone.offset !== Temporal.get().offset) {
+        if (Temporal.username && navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(Temporal.geoSuccess, function() {});
+        }
       }
-      return Temporal.fallback();
+      return Temporal.set(timezone);
     };
 
     Temporal.geoSuccess = function(position) {
@@ -54,11 +70,14 @@
     Temporal.parseGeoResponse = function(response) {
       delete window[JSONP_CALLBACK];
       if (response.timezoneId) {
-        return Temporal.set(new TimeZone(null, response.timezoneId));
+        return Temporal.set(new TimeZone({
+          name: response.timezoneId,
+          offset: response.rawOffset
+        }));
       }
     };
 
-    Temporal.fallback = function() {
+    Temporal.quick = function() {
       var januaryOffset, juneOffset, key;
       januaryOffset = Temporal.januaryOffset();
       juneOffset = Temporal.juneOffset();
@@ -80,13 +99,30 @@
           hemisphere: HEMISPHERE_SOUTH
         };
       }
-      return Temporal.set(new TimeZone("" + ([key.offset, key.dst].join(',')) + (key.hemisphere === HEMISPHERE_SOUTH ? ',s' : '')));
+      return new TimeZone("" + ([key.offset, key.dst].join(',')) + (key.hemisphere === HEMISPHERE_SOUTH ? ',s' : ''));
     };
 
     Temporal.set = function(timezone) {
+      var expiration;
       window.timezone = timezone;
-      document.cookie = "timezone=" + timezone.name;
+      expiration = new Date();
+      expiration.setMonth(expiration.getMonth() + 1);
+      document.cookie = "timezone=" + timezone.name + "; expires=" + (expiration.toGMTString());
+      document.cookie = "timezone_offset=" + timezone.offset;
       return typeof this.callback === "function" ? this.callback(timezone) : void 0;
+    };
+
+    Temporal.get = function() {
+      return {
+        name: this.getCookie('timezone'),
+        offset: parseFloat(this.getCookie('timezone_offset'))
+      };
+    };
+
+    Temporal.getCookie = function(name) {
+      var match;
+      match = document.cookie.match(new RegExp("(?:^|;)\\s?" + name + "=(.*?)(?:;|$)", 'i'));
+      return match && unescape(match[1]);
     };
 
     Temporal.januaryOffset = function() {
@@ -164,77 +200,290 @@
   };
 
   TIMEZONES = {
-    '-720,0': 'Etc/GMT+12',
-    '-660,0': 'Pacific/Pago_Pago',
-    '-600,1': 'America/Adak',
-    '-660,1,s': 'Pacific/Apia',
-    '-600,0': 'Pacific/Honolulu',
-    '-570,0': 'Pacific/Marquesas',
-    '-540,0': 'Pacific/Gambier',
-    '-540,1': 'America/Anchorage',
-    '-480,1': 'America/Los_Angeles',
-    '-480,0': 'Pacific/Pitcairn',
-    '-420,0': 'America/Phoenix',
-    '-420,1': 'America/Denver',
-    '-360,0': 'America/Guatemala',
-    '-360,1': 'America/Chicago',
-    '-360,1,s': 'Pacific/Easter',
-    '-300,0': 'America/Bogota',
-    '-300,1': 'America/New_York',
-    '-270,0': 'America/Caracas',
-    '-240,1': 'America/Halifax',
-    '-240,0': 'America/Santo_Domingo',
-    '-240,1,s': 'America/Asuncion',
-    '-210,1': 'America/St_Johns',
-    '-180,1': 'America/Godthab',
-    '-180,0': 'America/Argentina/Buenos_Aires,',
-    '-180,1,s': 'America/Montevideo',
-    '-120,0': 'America/Noronha',
-    '-120,1': 'Etc/GMT+2',
-    '-60,1': 'Atlantic/Azores',
-    '-60,0': 'Atlantic/Cape_Verde',
-    '0,0': 'Africa/Casablanca',
-    '0,1': 'Europe/London',
-    '60,1': 'Europe/Berlin',
-    '60,0': 'Africa/Lagos',
-    '60,1,s': 'Africa/Windhoek',
-    '120,1': 'Asia/Beirut',
-    '120,0': 'Africa/Johannesburg',
-    '180,1': 'Europe/Moscow',
-    '180,0': 'Asia/Baghdad',
-    '210,1': 'Asia/Tehran',
-    '240,0': 'Asia/Dubai',
-    '240,1': 'Asia/Yerevan',
-    '270,0': 'Asia/Kabul',
-    '300,1': 'Asia/Yekaterinburg',
-    '300,0': 'Asia/Karachi',
-    '330,0': 'Asia/Kolkata',
-    '345,0': 'Asia/Kathmandu',
-    '360,0': 'Asia/Dhaka',
-    '360,1': 'Asia/Omsk',
-    '390,0': 'Asia/Rangoon',
-    '420,1': 'Asia/Krasnoyarsk',
-    '420,0': 'Asia/Jakarta',
-    '480,0': 'Asia/Shanghai',
-    '480,1': 'Asia/Irkutsk',
-    '525,0': 'Australia/Eucla',
-    '525,1,s': 'Australia/Eucla',
-    '540,1': 'Asia/Yakutsk',
-    '540,0': 'Asia/Tokyo',
-    '570,0': 'Australia/Darwin',
-    '570,1,s': 'Australia/Adelaide',
-    '600,0': 'Australia/Brisbane',
-    '600,1': 'Asia/Vladivostok',
-    '600,1,s': 'Australia/Sydney',
-    '630,1,s': 'Australia/Lord_Howe',
-    '660,1': 'Asia/Kamchatka',
-    '660,0': 'Pacific/Noumea',
-    '690,0': 'Pacific/Norfolk',
-    '720,1,s': 'Pacific/Auckland',
-    '720,0': 'Pacific/Tarawa',
-    '765,1,s': 'Pacific/Chatham',
-    '780,0': 'Pacific/Tongatapu',
-    '840,0': 'Pacific/Kiritimati'
+    '-720,0': {
+      offset: -12,
+      name: 'Etc/GMT+12'
+    },
+    '-660,0': {
+      offset: -11,
+      name: 'Pacific/Pago_Pago'
+    },
+    '-600,1': {
+      offset: -11,
+      name: 'America/Adak'
+    },
+    '-660,1,s': {
+      offset: -11,
+      name: 'Pacific/Apia'
+    },
+    '-600,0': {
+      offset: -10,
+      name: 'Pacific/Honolulu'
+    },
+    '-570,0': {
+      offset: -10.5,
+      name: 'Pacific/Marquesas'
+    },
+    '-540,0': {
+      offset: -9,
+      name: 'Pacific/Gambier'
+    },
+    '-540,1': {
+      offset: -9,
+      name: 'America/Anchorage'
+    },
+    '-480,1': {
+      offset: -8,
+      name: 'America/Los_Angeles'
+    },
+    '-480,0': {
+      offset: -8,
+      name: 'Pacific/Pitcairn'
+    },
+    '-420,0': {
+      offset: -7,
+      name: 'America/Phoenix'
+    },
+    '-420,1': {
+      offset: -7,
+      name: 'America/Denver'
+    },
+    '-360,0': {
+      offset: -6,
+      name: 'America/Guatemala'
+    },
+    '-360,1': {
+      offset: -6,
+      name: 'America/Chicago'
+    },
+    '-360,1,s': {
+      offset: -6,
+      name: 'Pacific/Easter'
+    },
+    '-300,0': {
+      offset: -5,
+      name: 'America/Bogota'
+    },
+    '-300,1': {
+      offset: -5,
+      name: 'America/New_York'
+    },
+    '-270,0': {
+      offset: -4.5,
+      name: 'America/Caracas'
+    },
+    '-240,1': {
+      offset: -4,
+      name: 'America/Halifax'
+    },
+    '-240,0': {
+      offset: -4,
+      name: 'America/Santo_Domingo'
+    },
+    '-240,1,s': {
+      offset: -4,
+      name: 'America/Asuncion'
+    },
+    '-210,1': {
+      offset: -3.5,
+      name: 'America/St_Johns'
+    },
+    '-180,1': {
+      offset: -3,
+      name: 'America/Godthab'
+    },
+    '-180,0': {
+      offset: -3,
+      name: 'America/Argentina/Buenos_Aires,'
+    },
+    '-180,1,s': {
+      offset: -3,
+      name: 'America/Montevideo'
+    },
+    '-120,0': {
+      offset: -2,
+      name: 'America/Noronha'
+    },
+    '-120,1': {
+      offset: -2,
+      name: 'Etc/GMT+2'
+    },
+    '-60,1': {
+      offset: -1,
+      name: 'Atlantic/Azores'
+    },
+    '-60,0': {
+      offset: -1,
+      name: 'Atlantic/Cape_Verde'
+    },
+    '0,0': {
+      offset: 0,
+      name: 'Africa/Casablanca'
+    },
+    '0,1': {
+      offset: 0,
+      name: 'Europe/London'
+    },
+    '60,1': {
+      offset: 1,
+      name: 'Europe/Berlin'
+    },
+    '60,0': {
+      offset: 1,
+      name: 'Africa/Lagos'
+    },
+    '60,1,s': {
+      offset: 1,
+      name: 'Africa/Windhoek'
+    },
+    '120,1': {
+      offset: 2,
+      name: 'Asia/Beirut'
+    },
+    '120,0': {
+      offset: 2,
+      name: 'Africa/Johannesburg'
+    },
+    '180,1': {
+      offset: 3,
+      name: 'Europe/Moscow'
+    },
+    '180,0': {
+      offset: 3,
+      name: 'Asia/Baghdad'
+    },
+    '210,1': {
+      offset: 3.5,
+      name: 'Asia/Tehran'
+    },
+    '240,0': {
+      offset: 4,
+      name: 'Asia/Dubai'
+    },
+    '240,1': {
+      offset: 4,
+      name: 'Asia/Yerevan'
+    },
+    '270,0': {
+      offset: 4.5,
+      name: 'Asia/Kabul'
+    },
+    '300,1': {
+      offset: 5,
+      name: 'Asia/Yekaterinburg'
+    },
+    '300,0': {
+      offset: 5,
+      name: 'Asia/Karachi'
+    },
+    '330,0': {
+      offset: 5,
+      name: 'Asia/Kolkata'
+    },
+    '345,0': {
+      offset: 5.75,
+      name: 'Asia/Kathmandu'
+    },
+    '360,0': {
+      offset: 6,
+      name: 'Asia/Dhaka'
+    },
+    '360,1': {
+      offset: 6,
+      name: 'Asia/Omsk'
+    },
+    '390,0': {
+      offset: 6,
+      name: 'Asia/Rangoon'
+    },
+    '420,1': {
+      offset: 7,
+      name: 'Asia/Krasnoyarsk'
+    },
+    '420,0': {
+      offset: 7,
+      name: 'Asia/Jakarta'
+    },
+    '480,0': {
+      offset: 8,
+      name: 'Asia/Shanghai'
+    },
+    '480,1': {
+      offset: 8,
+      name: 'Asia/Irkutsk'
+    },
+    '525,0': {
+      offset: 8.75,
+      name: 'Australia/Eucla'
+    },
+    '525,1,s': {
+      offset: 8.75,
+      name: 'Australia/Eucla'
+    },
+    '540,1': {
+      offset: 9,
+      name: 'Asia/Yakutsk'
+    },
+    '540,0': {
+      offset: 9,
+      name: 'Asia/Tokyo'
+    },
+    '570,0': {
+      offset: 9.5,
+      name: 'Australia/Darwin'
+    },
+    '570,1,s': {
+      offset: 9.5,
+      name: 'Australia/Adelaide'
+    },
+    '600,0': {
+      offset: 10,
+      name: 'Australia/Brisbane'
+    },
+    '600,1': {
+      offset: 10,
+      name: 'Asia/Vladivostok'
+    },
+    '600,1,s': {
+      offset: 10,
+      name: 'Australia/Sydney'
+    },
+    '630,1,s': {
+      offset: 10.5,
+      name: 'Australia/Lord_Howe'
+    },
+    '660,1': {
+      offset: 11,
+      name: 'Asia/Kamchatka'
+    },
+    '660,0': {
+      offset: 11,
+      name: 'Pacific/Noumea'
+    },
+    '690,0': {
+      offset: 11.5,
+      name: 'Pacific/Norfolk'
+    },
+    '720,1,s': {
+      offset: 12,
+      name: 'Pacific/Auckland'
+    },
+    '720,0': {
+      offset: 12,
+      name: 'Pacific/Tarawa'
+    },
+    '765,1,s': {
+      offset: 12.75,
+      name: 'Pacific/Chatham'
+    },
+    '780,0': {
+      offset: 13,
+      name: 'Pacific/Tongatapu'
+    },
+    '840,0': {
+      offset: 14,
+      name: 'Pacific/Kiritimati'
+    }
   };
 
   this.Temporal = {
