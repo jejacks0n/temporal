@@ -50,7 +50,7 @@ class Temporal
     expiration = new Date()
     expiration.setMonth(expiration.getMonth() + 1)
     document.cookie = "timezone=#{timezone.name}; expires=#{expiration.toGMTString()}"
-    document.cookie = "timezone_offset=#{timezone.offset}"
+    document.cookie = "timezone_offset=#{timezone.offset}; expires=#{expiration.toGMTString()}"
     @callback?(timezone)
 
   @get: ->
