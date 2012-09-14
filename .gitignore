@@ -18,4 +18,4 @@ capybara*
 
 # Dummy app
 spec/dummy/log
-spec/dummy/db
+spec/dummy/db/*.sqlite3
