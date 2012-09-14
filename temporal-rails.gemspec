@@ -27,6 +27,7 @@ Gem::Specification.new do |s|
 
   # Testing dependencies
   s.add_development_dependency 'evergreen', '>= 1.0.0'
+  s.add_development_dependency 'rspec-rails'
 
   # Gem Files
   s.extra_rdoc_files  = %w(LICENSE)
