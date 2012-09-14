@@ -1,41 +1,22 @@
-class TimeZone
-
-  constructor: (keyOrProperties) ->
-    if typeof(keyOrProperties) == 'string'
-      zone = TIMEZONES[keyOrProperties]
-      @[property] = value for own property, value of zone
-      @resolveAmbiguity()
-    else
-      @[property] = value for own property, value of keyOrProperties
-
-  resolveAmbiguity: ->
-    ambiguous = AMBIGIOUS_ZONES[@name]
-    return if typeof(ambiguous) is 'undefined'
-    for key, value of ambiguous
-      if Temporal.dateIsDst(DST_START_DATES[value])
-        @name = value
-        return
-
-
+# Temporal -- use detect() to detect, and reference() if you need a reference
+# to the class so you can use it.
+# -----------------------------------------------------------------------------
 class Temporal
 
-  @detect: (@username = null, @callback = null) =>
-    timezone = @quick()
-    if timezone.offset != @get().offset
-      navigator.geolocation.getCurrentPosition(@geoSuccess, ->) if @username and navigator.geolocation
+  jsonpCallback = "geoSuccessCallback#{parseInt(Math.random() * 10000)}"
+
+  @detect: (username = null, callback = null) =>
+    new Temporal(username, callback)
+
+  constructor: (@username = null, @callback = null) ->
+    @detect()
+
+  detect: ->
+    timezone = @detectLocally()
+    @geoLocate() if @username and navigator.geolocation and timezone.offset != @get().offset
     @set(timezone)
 
-  @geoSuccess: (position) =>
-    window[JSONP_CALLBACK] = @parseGeoResponse
-    script = document.createElement('script')
-    script.setAttribute('src', "http://api.geonames.org/timezoneJSON?lat=#{position.coords.latitude}&lng=#{position.coords.longitude}&username=#{@username}&callback=#{JSONP_CALLBACK}")
-    document.getElementsByTagName('head')[0].appendChild(script)
-
-  @parseGeoResponse: (response) =>
-    delete(window[JSONP_CALLBACK])
-    @set(new TimeZone(name: response.timezoneId, offset: response.rawOffset)) if response.timezoneId
-
-  @quick: =>
+  detectLocally: ->
     januaryOffset = @januaryOffset()
     juneOffset = @juneOffset()
     key = {offset: januaryOffset, dst: 0, hemisphere: HEMISPHERE_UNKNOWN}
@@ -45,35 +26,76 @@ class Temporal
       key = {offset: juneOffset, dst: 1, hemisphere: HEMISPHERE_SOUTH}
     new TimeZone("#{([key.offset, key.dst].join(','))}#{if key.hemisphere is HEMISPHERE_SOUTH then ',s' else ''}")
 
-  @set: (timezone) ->
-    window.timezone = timezone
+  geoLocate: ->
+    navigator.geolocation.getCurrentPosition(@geoSuccess, ->)
+
+  geoSuccess: (position) =>
+    window[jsonpCallback] = @parseGeoResponse
+    script = document.createElement('script')
+    script.setAttribute('src', "http://api.geonames.org/timezoneJSON?lat=#{position.coords.latitude}&lng=#{position.coords.longitude}&username=#{@username}&callback=#{jsonpCallback}")
+    document.getElementsByTagName('head')[0].appendChild(script)
+
+  parseGeoResponse: (response) =>
+    delete(window[jsonpCallback])
+    @set(new TimeZone(name: response.timezoneId, offset: response.rawOffset)) if response.timezoneId
+
+  set: (@timezone) ->
+    window.timezone = @timezone
     expiration = new Date()
     expiration.setMonth(expiration.getMonth() + 1)
-    document.cookie = "timezone=#{timezone.name}; expires=#{expiration.toGMTString()}"
-    document.cookie = "timezone_offset=#{timezone.offset}; expires=#{expiration.toGMTString()}"
-    @callback?(timezone)
+    document.cookie = "timezone=#{@timezone.name}; expires=#{expiration.toGMTString()}"
+    document.cookie = "timezone_offset=#{@timezone.offset}; expires=#{expiration.toGMTString()}"
+    @callback?(@timezone)
 
-  @get: ->
+  get: ->
     name: @getCookie('timezone')
-    offset: parseFloat(@getCookie('timezone_offset'))
+    offset: parseFloat(@getCookie('timezone_offset')) || 0
 
-  @getCookie: (name) ->
+  getCookie: (name) ->
     match = document.cookie.match(new RegExp("(?:^|;)\\s?#{name}=(.*?)(?:;|$)", 'i'))
     match && unescape(match[1])
 
-  @januaryOffset: ->
+  januaryOffset: ->
     @dateOffset(new Date(2011, 0, 1, 0, 0, 0, 0))
 
-  @juneOffset: ->
+  juneOffset: ->
     @dateOffset(new Date(2011, 5, 1, 0, 0, 0, 0))
 
-  @dateOffset: (date) ->
+  dateOffset: (date) ->
     -date.getTimezoneOffset()
 
-  @dateIsDst: (date) ->
+
+# Timezone -- contains offset and timezone name
+# -----------------------------------------------------------------------------
+class TimeZone
+
+  dateIsDst = (date) ->
     (((if date.getMonth() > 5 then @juneOffset() else @januaryOffset())) - @dateOffset(date)) isnt 0
 
-JSONP_CALLBACK = "geoSuccessCallback#{parseInt(Math.random() * 10000)}"
+  resolveAmbiguity = ->
+    ambiguous = AMBIGIOUS_ZONES[@name]
+    return if typeof(ambiguous) is 'undefined'
+    for key, value of ambiguous
+      if dateIsDst(DST_START_DATES[value])
+        @name = value
+        return
+
+  constructor: (keyOrProperties) ->
+    if typeof(keyOrProperties) == 'string'
+      zone = TIMEZONES[keyOrProperties]
+      @[property] = value for own property, value of zone
+      resolveAmbiguity()
+    else
+      @[property] = value for own property, value of keyOrProperties
+
+
+# Expose Temporal to the global scope
+# -----------------------------------------------------------------------------
+@Temporal = {detect: Temporal.detect, reference: -> Temporal}
+
+
+# Data
+# -----------------------------------------------------------------------------
 HEMISPHERE_SOUTH = 'SOUTH'
 HEMISPHERE_NORTH = 'NORTH'
 HEMISPHERE_UNKNOWN = 'N/A'
@@ -191,5 +213,3 @@ TIMEZONES =
   '765,1,s':  {offset: 12.75, name: 'Pacific/Chatham'}
   '780,0':    {offset: 13,    name: 'Pacific/Tongatapu'}
   '840,0':    {offset: 14,    name: 'Pacific/Kiritimati'}
-
-@Temporal = {detect: Temporal.detect}
