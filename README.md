@@ -1,5 +1,8 @@
 # Temporal
 
+[![Build Status](https://secure.travis-ci.org/jejacks0n/mercury.png?branch=master)](http://travis-ci.org/jejacks0n/mercury)
+[![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/jejacks0n/temporal)
+
 Temporal is a small (~7.5k) Javascript library that uses a collection of techniques to determine a clients time zone.
 Once a time zone has been determined, a cookie is set which can be used on the server.  Now you can display local times
 throughout the rest of the response cycle.
