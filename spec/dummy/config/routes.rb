@@ -1,6 +1,6 @@
 Dummy::Application.routes.draw do
 
-  match '/welcome' => 'application#welcome'
+  root to: 'application#welcome'
 
   # The priority is based upon order of creation:
   # first created -> highest priority.
