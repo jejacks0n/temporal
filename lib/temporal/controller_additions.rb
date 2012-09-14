@@ -5,7 +5,7 @@ module Temporal
     end
 
     def set_time_zone
-      Time.zone = ActiveSupport::TimeZone.new(cookies[:timezone]) || Rails.application.config.time_zone
+      Time.zone = cookies[:timezone] ? ActiveSupport::TimeZone.new(cookies[:timezone]) : Rails.application.config.time_zone
     end
   end
 end
