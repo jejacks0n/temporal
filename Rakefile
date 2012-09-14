@@ -85,8 +85,7 @@ namespace :temporal do
 
 end
 
-
-
 Rake::Task['default'].prerequisites.clear
 Rake::Task['default'].clear
+
 task :default => [:spec, 'spec:javascripts']
