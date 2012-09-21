@@ -34,8 +34,6 @@ useful as a tool, or a learning opportunity.
 
 ## Installation
 
-Just the Javascript?  Download [temporal.js](https://raw.github.com/jejacks0n/temporal/master/distro/temporal.js) or [temporal.min.js](https://raw.github.com/jejacks0n/temporal/master/distro/temporal.min.js).
-
 ### Rails
 
     gem 'temporal-rails'
@@ -43,6 +41,12 @@ Just the Javascript?  Download [temporal.js](https://raw.github.com/jejacks0n/te
 Then require temporal in your application.js:
 
     //= require temporal
+
+### Just the Javascript?
+
+Download [temporal.js](https://raw.github.com/jejacks0n/temporal/master/distro/temporal.js) or [temporal.min.js](https://raw.github.com/jejacks0n/temporal/master/distro/temporal.min.js)
+and add them to your project.  The same API applies, but you would need to consume the cookie that's set on the back
+end -- using data similar to [TZInfo](http://tzinfo.rubyforge.org/).
 
 
 ## Usage
@@ -54,7 +58,7 @@ be treated as the time zone, and not the location (eg. don't display it unless y
 
 The `Temporal.detect` method takes two arguments:
 
-- your GeoNames username -- can be created [here](http://www.geonames.org/login) and turn on the web service [here](http://www.geonames.org/manageaccount) (it's near the bottom)
+- your GeoNames username -- can be created [here](http://www.geonames.org/login) and also turn on the web service [here](http://www.geonames.org/manageaccount) (it's near the bottom)
 - a callback function
 
 If you don't provide the first argument the HTML5 geolocation and GeoNames APIs will not be used.
@@ -72,4 +76,11 @@ like the users time zone has changed (if they're traveling, or have moved, etc.)
 have changed it will trigger the GoeNames API hit again for clarification.
 
 
-## Enjoy. =)
+## License
+
+Licensed under the [MIT License](http://opensource.org/licenses/mit-license.php)
+
+Copyright 2012 [Jeremy Jackson](https://github.com/jejacks0n)
+
+
+## Enjoy =)
