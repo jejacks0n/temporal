@@ -1,6 +1,7 @@
 # Temporal
 
 [![Build Status](https://secure.travis-ci.org/jejacks0n/temporal.png)](http://travis-ci.org/jejacks0n/temporal)
+[![Dependency Status](https://gemnasium.com/jejacks0n/temporal.png)](https://gemnasium.com/jejacks0n/temporal)
 [![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/jejacks0n/temporal)
 
 Temporal is a small (~7.5k) Javascript library that uses a collection of techniques to determine a clients time zone.
