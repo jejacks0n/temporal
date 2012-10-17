@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   # General Gem Information
   s.name        = 'temporal-rails'
-  s.date        = '2012-09-11'
+  s.date        = '2012-10-16'
   s.version     = Temporal::VERSION
   s.authors     = ['Jeremy Jackson']
   s.email       = ['jejacks0n@gmail.com']
@@ -14,7 +14,6 @@ Gem::Specification.new do |s|
   s.summary     = %Q{Temporal: Javascript timezone detection for Rails}
   s.description = %Q{Javascript timezone detection that also sets Time.zone for Rails to use}
   s.licenses    = ['MIT']
-
 
   # Runtime Dependencies
   s.add_dependency 'railties', '~> 3.2.8'
