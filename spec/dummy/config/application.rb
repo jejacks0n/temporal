@@ -3,8 +3,6 @@ require File.expand_path('../boot', __FILE__)
 require 'action_controller/railtie'
 require 'sprockets/railtie'
 
-require 'evergreen/rails'
-
 if defined?(Bundler)
   # If you precompile assets before deploying to production, use this line
   Bundler.require(*Rails.groups(:assets => %w(development test)))
@@ -55,6 +53,9 @@ module Dummy
     # in your app. As such, your models will need to explicitly whitelist or blacklist accessible
     # parameters by using an attr_accessible or attr_protected declaration.
     #config.active_record.whitelist_attributes = true
+
+    Dummy::Application.config.session_store :cookie_store, :key => '_dummy_session'
+    Dummy::Application.config.secret_token = '990bac5b6d4f068883259503539cad4e9ec00f137986fcbc718a1e0b645af7a3eb0340468f8fae09958a6281190396d65789b6316af61e47a8cbda3c8c071a0e'
 
     # Enable the asset pipeline
     config.assets.enabled = true

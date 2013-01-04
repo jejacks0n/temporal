@@ -41,7 +41,8 @@ describe "Temporal", ->
       spyOn(Temporal.prototype, 'detectLocally').andReturn name: 'foo', offset: 1
       spy = spyOn(Temporal.prototype, 'geoLocate')
       new Temporal('username')
-      expect(spy.callCount).toBe 1
+      if navigator.geolocation
+        expect(spy.callCount).toBe 1
 
     it "doesn't call #geoLocate if there isn't a username", ->
       spyOn(Temporal.prototype, 'detectLocally').andReturn name: 'foo', offset: 1
