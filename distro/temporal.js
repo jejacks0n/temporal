@@ -1,86 +1,46 @@
 (function() {
-  var AMBIGIOUS_ZONES, DST_START_DATES, HEMISPHERE_NORTH, HEMISPHERE_SOUTH, HEMISPHERE_UNKNOWN, JSONP_CALLBACK, TIMEZONES, Temporal, TimeZone,
+  var AMBIGIOUS_ZONES, DST_START_DATES, HEMISPHERE_NORTH, HEMISPHERE_SOUTH, HEMISPHERE_UNKNOWN, TIMEZONES, Temporal, TimeZone,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty;
 
-  TimeZone = (function() {
-
-    function TimeZone(keyOrProperties) {
-      var property, value, zone;
-      if (typeof keyOrProperties === 'string') {
-        zone = TIMEZONES[keyOrProperties];
-        for (property in zone) {
-          if (!__hasProp.call(zone, property)) continue;
-          value = zone[property];
-          this[property] = value;
-        }
-        this.resolveAmbiguity();
-      } else {
-        for (property in keyOrProperties) {
-          if (!__hasProp.call(keyOrProperties, property)) continue;
-          value = keyOrProperties[property];
-          this[property] = value;
-        }
-      }
-    }
-
-    TimeZone.prototype.resolveAmbiguity = function() {
-      var ambiguous, key, value;
-      ambiguous = AMBIGIOUS_ZONES[this.name];
-      if (typeof ambiguous === 'undefined') {
-        return;
-      }
-      for (key in ambiguous) {
-        value = ambiguous[key];
-        if (Temporal.dateIsDst(DST_START_DATES[value])) {
-          this.name = value;
-          return;
-        }
-      }
-    };
-
-    return TimeZone;
-
-  })();
-
   Temporal = (function() {
+    var jsonpCallback;
 
-    function Temporal() {}
+    jsonpCallback = "geoSuccessCallback" + (parseInt(Math.random() * 10000));
 
     Temporal.detect = function(username, callback) {
+      if (username == null) {
+        username = null;
+      }
+      if (callback == null) {
+        callback = null;
+      }
+      return new Temporal(username, callback);
+    };
+
+    function Temporal(username, callback) {
+      this.username = username != null ? username : null;
+      this.callback = callback != null ? callback : null;
+      this.parseGeoResponse = __bind(this.parseGeoResponse, this);
+
+      this.geoSuccess = __bind(this.geoSuccess, this);
+
+      this.detect();
+    }
+
+    Temporal.prototype.detect = function() {
       var timezone;
-      Temporal.username = username != null ? username : null;
-      Temporal.callback = callback != null ? callback : null;
-      timezone = Temporal.quick();
-      if (timezone.offset !== Temporal.get().offset) {
-        if (Temporal.username && navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(Temporal.geoSuccess, function() {});
-        }
+      timezone = this.detectLocally();
+      if (this.username && navigator.geolocation && timezone.offset !== this.get().offset) {
+        this.geoLocate();
       }
-      return Temporal.set(timezone);
+      return this.set(timezone);
     };
 
-    Temporal.geoSuccess = function(position) {
-      var script;
-      window[JSONP_CALLBACK] = Temporal.parseGeoResponse;
-      script = document.createElement('script');
-      script.setAttribute('src', "http://api.geonames.org/timezoneJSON?lat=" + position.coords.latitude + "&lng=" + position.coords.longitude + "&username=" + Temporal.username + "&callback=" + JSONP_CALLBACK);
-      return document.getElementsByTagName('head')[0].appendChild(script);
-    };
-
-    Temporal.parseGeoResponse = function(response) {
-      delete window[JSONP_CALLBACK];
-      if (response.timezoneId) {
-        return Temporal.set(new TimeZone({
-          name: response.timezoneId,
-          offset: response.rawOffset
-        }));
-      }
-    };
-
-    Temporal.quick = function() {
+    Temporal.prototype.detectLocally = function() {
       var januaryOffset, juneOffset, key;
-      januaryOffset = Temporal.januaryOffset();
-      juneOffset = Temporal.juneOffset();
+      januaryOffset = this.januaryOffset();
+      juneOffset = this.juneOffset();
       key = {
         offset: januaryOffset,
         dst: 0,
@@ -102,50 +62,119 @@
       return new TimeZone("" + ([key.offset, key.dst].join(',')) + (key.hemisphere === HEMISPHERE_SOUTH ? ',s' : ''));
     };
 
-    Temporal.set = function(timezone) {
-      var expiration;
-      window.timezone = timezone;
-      expiration = new Date();
-      expiration.setMonth(expiration.getMonth() + 1);
-      document.cookie = "timezone=" + timezone.name + "; expires=" + (expiration.toGMTString());
-      document.cookie = "timezone_offset=" + timezone.offset + "; expires=" + (expiration.toGMTString());
-      return typeof this.callback === "function" ? this.callback(timezone) : void 0;
+    Temporal.prototype.geoLocate = function() {
+      return navigator.geolocation.getCurrentPosition(this.geoSuccess, function() {});
     };
 
-    Temporal.get = function() {
+    Temporal.prototype.geoSuccess = function(position) {
+      var script;
+      window[jsonpCallback] = this.parseGeoResponse;
+      script = document.createElement('script');
+      script.setAttribute('src', "http://api.geonames.org/timezoneJSON?lat=" + position.coords.latitude + "&lng=" + position.coords.longitude + "&username=" + this.username + "&callback=" + jsonpCallback);
+      return document.getElementsByTagName('head')[0].appendChild(script);
+    };
+
+    Temporal.prototype.parseGeoResponse = function(response) {
+      delete window[jsonpCallback];
+      if (response.timezoneId) {
+        return this.set(new TimeZone({
+          name: response.timezoneId,
+          offset: response.rawOffset
+        }));
+      }
+    };
+
+    Temporal.prototype.set = function(timezone) {
+      var expiration;
+      this.timezone = timezone;
+      window.timezone = this.timezone;
+      expiration = new Date();
+      expiration.setMonth(expiration.getMonth() + 1);
+      document.cookie = "timezone=" + this.timezone.name + "; expires=" + (expiration.toGMTString());
+      document.cookie = "timezone_offset=" + this.timezone.offset + "; expires=" + (expiration.toGMTString());
+      return typeof this.callback === "function" ? this.callback(this.timezone) : void 0;
+    };
+
+    Temporal.prototype.get = function() {
       return {
         name: this.getCookie('timezone'),
-        offset: parseFloat(this.getCookie('timezone_offset'))
+        offset: parseFloat(this.getCookie('timezone_offset')) || 0
       };
     };
 
-    Temporal.getCookie = function(name) {
+    Temporal.prototype.getCookie = function(name) {
       var match;
       match = document.cookie.match(new RegExp("(?:^|;)\\s?" + name + "=(.*?)(?:;|$)", 'i'));
       return match && unescape(match[1]);
     };
 
-    Temporal.januaryOffset = function() {
+    Temporal.prototype.januaryOffset = function() {
       return this.dateOffset(new Date(2011, 0, 1, 0, 0, 0, 0));
     };
 
-    Temporal.juneOffset = function() {
+    Temporal.prototype.juneOffset = function() {
       return this.dateOffset(new Date(2011, 5, 1, 0, 0, 0, 0));
     };
 
-    Temporal.dateOffset = function(date) {
+    Temporal.prototype.dateOffset = function(date) {
       return -date.getTimezoneOffset();
-    };
-
-    Temporal.dateIsDst = function(date) {
-      return ((date.getMonth() > 5 ? this.juneOffset() : this.januaryOffset()) - this.dateOffset(date)) !== 0;
     };
 
     return Temporal;
 
   }).call(this);
 
-  JSONP_CALLBACK = "geoSuccessCallback" + (parseInt(Math.random() * 10000));
+  TimeZone = (function() {
+    var dateIsDst, resolveAmbiguity;
+
+    dateIsDst = function(date) {
+      return ((date.getMonth() > 5 ? this.juneOffset() : this.januaryOffset()) - this.dateOffset(date)) !== 0;
+    };
+
+    resolveAmbiguity = function() {
+      var ambiguous, key, value;
+      ambiguous = AMBIGIOUS_ZONES[this.name];
+      if (typeof ambiguous === 'undefined') {
+        return;
+      }
+      for (key in ambiguous) {
+        value = ambiguous[key];
+        if (dateIsDst(DST_START_DATES[value])) {
+          this.name = value;
+          return;
+        }
+      }
+    };
+
+    function TimeZone(keyOrProperties) {
+      var property, value, zone;
+      if (typeof keyOrProperties === 'string') {
+        zone = TIMEZONES[keyOrProperties];
+        for (property in zone) {
+          if (!__hasProp.call(zone, property)) continue;
+          value = zone[property];
+          this[property] = value;
+        }
+        resolveAmbiguity();
+      } else {
+        for (property in keyOrProperties) {
+          if (!__hasProp.call(keyOrProperties, property)) continue;
+          value = keyOrProperties[property];
+          this[property] = value;
+        }
+      }
+    }
+
+    return TimeZone;
+
+  })();
+
+  this.Temporal = {
+    detect: Temporal.detect,
+    reference: function() {
+      return Temporal;
+    }
+  };
 
   HEMISPHERE_SOUTH = 'SOUTH';
 
@@ -484,10 +513,6 @@
       offset: 14,
       name: 'Pacific/Kiritimati'
     }
-  };
-
-  this.Temporal = {
-    detect: Temporal.detect
   };
 
 }).call(this);
