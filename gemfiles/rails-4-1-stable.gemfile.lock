@@ -75,6 +75,7 @@ GEM
     minitest (5.5.1)
     multi_json (1.11.0)
     phantomjs (1.9.8.0)
+    phantomjs-linux (0.0.2)
     rack (1.5.2)
     rack-test (0.6.3)
       rack (>= 1.0)
@@ -121,6 +122,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  phantomjs-linux
   rails!
   rspec-rails
   teabag
