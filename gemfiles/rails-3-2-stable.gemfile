@@ -1,0 +1,7 @@
+source "https://rubygems.org"
+
+# remember to also update ../Gemfile
+gem "rails", github: "rails/rails", branch: "3-2-stable"
+gem 'test-unit', '~> 3.0'
+
+gemspec :path => "../"
