@@ -15,7 +15,6 @@ Gem::Specification.new do |s|
   s.files       = Dir["{lib,vendor}/**/*"] + ["MIT.LICENSE", "README.md"]
 
   # Runtime Dependencies
-  # s.add_dependency 'railties', ['>= 3.2.5','< 5'] # no need
   s.add_dependency 'coffee-rails'
 
 
@@ -26,7 +25,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rspec-rails"
   s.add_development_dependency "uglifier"
   s.add_development_dependency "teabag"
-  # required for travis-ci and linux environments
   s.add_development_dependency "phantomjs-linux" #if RUBY_PLATFORM =~ /linux/
 
 end
