@@ -323,7 +323,7 @@
     },
     '-180,0': {
       offset: -3,
-      name: 'America/Argentina/Buenos_Aires,'
+      name: 'America/Argentina/Buenos_Aires'
     },
     '-180,1,s': {
       offset: -3,
