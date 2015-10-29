@@ -165,7 +165,7 @@ TIMEZONES =
   '-240,1,s': {offset: -4,    name: 'America/Asuncion'}
   '-210,1':   {offset: -3.5,  name: 'America/St_Johns'}
   '-180,1':   {offset: -3,    name: 'America/Godthab'}
-  '-180,0':   {offset: -3,    name: 'America/Argentina/Buenos_Aires,'}
+  '-180,0':   {offset: -3,    name: 'America/Argentina/Buenos_Aires'}
   '-180,1,s': {offset: -3,    name: 'America/Montevideo'}
   '-120,0':   {offset: -2,    name: 'America/Noronha'}
   '-120,1':   {offset: -2,    name: 'Etc/GMT+2'}
