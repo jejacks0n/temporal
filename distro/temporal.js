@@ -1,7 +1,7 @@
 (function() {
   var AMBIGIOUS_ZONES, DST_START_DATES, HEMISPHERE_NORTH, HEMISPHERE_SOUTH, HEMISPHERE_UNKNOWN, TIMEZONES, Temporal, TimeZone,
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-    __hasProp = {}.hasOwnProperty;
+    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    hasProp = {}.hasOwnProperty;
 
   Temporal = (function() {
     var jsonpCallback;
@@ -18,13 +18,11 @@
       return new Temporal(username, callback);
     };
 
-    function Temporal(username, callback) {
-      this.username = username != null ? username : null;
-      this.callback = callback != null ? callback : null;
-      this.parseGeoResponse = __bind(this.parseGeoResponse, this);
-
-      this.geoSuccess = __bind(this.geoSuccess, this);
-
+    function Temporal(username1, callback1) {
+      this.username = username1 != null ? username1 : null;
+      this.callback = callback1 != null ? callback1 : null;
+      this.parseGeoResponse = bind(this.parseGeoResponse, this);
+      this.geoSuccess = bind(this.geoSuccess, this);
       this.detect();
     }
 
@@ -84,9 +82,9 @@
       }
     };
 
-    Temporal.prototype.set = function(timezone) {
+    Temporal.prototype.set = function(timezone1) {
       var expiration;
-      this.timezone = timezone;
+      this.timezone = timezone1;
       window.timezone = this.timezone;
       expiration = new Date();
       expiration.setMonth(expiration.getMonth() + 1);
@@ -122,7 +120,7 @@
 
     return Temporal;
 
-  }).call(this);
+  })();
 
   TimeZone = (function() {
     var dateIsDst, resolveAmbiguity;
@@ -151,14 +149,14 @@
       if (typeof keyOrProperties === 'string') {
         zone = TIMEZONES[keyOrProperties];
         for (property in zone) {
-          if (!__hasProp.call(zone, property)) continue;
+          if (!hasProp.call(zone, property)) continue;
           value = zone[property];
           this[property] = value;
         }
         resolveAmbiguity();
       } else {
         for (property in keyOrProperties) {
-          if (!__hasProp.call(keyOrProperties, property)) continue;
+          if (!hasProp.call(keyOrProperties, property)) continue;
           value = keyOrProperties[property];
           this[property] = value;
         }
