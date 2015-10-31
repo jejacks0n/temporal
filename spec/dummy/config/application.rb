@@ -10,6 +10,19 @@ if defined?(Bundler)
   # Bundler.require(:default, :assets, Rails.env)
 end
 
+
+
+
+
+require "uglifier"
+require "teabag"
+require "phantomjs-linux" if RUBY_PLATFORM =~ /linux/
+
+
+
+
+
+
 module Dummy
   class Application < Rails::Application
     # Settings in config/environments/* take precedence over those specified here.
