@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.test_files  = Dir["{spec}/**/*"]
 
   # Runtime Dependencies
-  s.add_dependency 'railties', ['>= 3.2.5','< 5']
+  s.add_dependency 'railties', ['>= 3.2.5']
   s.add_dependency 'coffee-rails'
 
 end
